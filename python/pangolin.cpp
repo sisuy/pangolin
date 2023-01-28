@@ -32,7 +32,7 @@ namespace py = pybind11;
 
 namespace pangolin {
 
-PYBIND11_MODULE(pangolin, m) {
+PYBIND11_MODULE(pypangolin, m) {
     
 
     // declaration order matters

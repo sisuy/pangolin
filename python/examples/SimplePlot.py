@@ -1,7 +1,10 @@
 # https://github.com/stevenlovegrove/Pangolin/blob/master/examples/SimplePlot
 
+import sys 
+sys.path.append("../../")
+
 import OpenGL.GL as gl 
-import pangolin
+import pypangolin as pangolin
 
 import numpy as np
 

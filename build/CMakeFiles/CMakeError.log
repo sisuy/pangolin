@@ -1,0 +1,43 @@
+Compiling the C compiler identification source file "CMakeCCompilerId.c" failed.
+Compiler: /Library/Developer/CommandLineTools/usr/bin/cc 
+Build flags: 
+Id flags:  
+
+The output was:
+1
+ld: library not found for -lSystem
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" failed.
+Compiler: /Library/Developer/CommandLineTools/usr/bin/c++ 
+Build flags: 
+Id flags:  
+
+The output was:
+1
+ld: library not found for -lc++
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+
+
+Performing C++ SOURCE FILE Test HAVE_FFMPEG_MAX_ANALYZE_DURATION failed with the following output:
+Change Dir: /Users/li/Documents/VUW/github/pangolin/build/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/opt/local/bin/gmake -f Makefile cmTC_fc6eb/fast && /opt/local/bin/gmake  -f CMakeFiles/cmTC_fc6eb.dir/build.make CMakeFiles/cmTC_fc6eb.dir/build
+gmake[1]: 进入目录“/Users/li/Documents/VUW/github/pangolin/build/CMakeFiles/CMakeTmp”
+Building CXX object CMakeFiles/cmTC_fc6eb.dir/src.cxx.o
+/Library/Developer/CommandLineTools/usr/bin/c++ -DHAVE_FFMPEG_MAX_ANALYZE_DURATION -I/opt/local/include -Wall -Wextra  -Wno-deprecated-register  -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.1.sdk -MD -MT CMakeFiles/cmTC_fc6eb.dir/src.cxx.o -MF CMakeFiles/cmTC_fc6eb.dir/src.cxx.o.d -o CMakeFiles/cmTC_fc6eb.dir/src.cxx.o -c /Users/li/Documents/VUW/github/pangolin/build/CMakeFiles/CMakeTmp/src.cxx
+/Users/li/Documents/VUW/github/pangolin/build/CMakeFiles/CMakeTmp/src.cxx:3:33: error: invalid use of non-static data member 'max_analyze_duration'
+        sizeof(AVFormatContext::max_analyze_duration);
+               ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~
+1 error generated.
+gmake[1]: *** [CMakeFiles/cmTC_fc6eb.dir/build.make:79: CMakeFiles/cmTC_fc6eb.dir/src.cxx.o] Error 1
+gmake[1]: 离开目录“/Users/li/Documents/VUW/github/pangolin/build/CMakeFiles/CMakeTmp”
+gmake: *** [Makefile:127: cmTC_fc6eb/fast] Error 2
+
+
+Source file was:
+#include "/opt/local/include/libavformat/avformat.h"
+      int main() {
+        sizeof(AVFormatContext::max_analyze_duration);
+      }

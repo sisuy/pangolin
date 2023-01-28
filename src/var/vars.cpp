@@ -33,7 +33,6 @@
 
 #include <iostream>
 #include <fstream>
-#include <sstream>
 
 using namespace std;
 
@@ -55,9 +54,9 @@ VarState::~VarState() {
 }
 
 void VarState::Clear() {
-    //for(VarStoreContainer::iterator i = vars.begin(); i != vars.end(); ++i) {
-    //    delete i->second;
-    //}
+    for(VarStoreContainer::iterator i = vars.begin(); i != vars.end(); ++i) {
+        delete i->second;
+    }
     vars.clear();
     var_adds.clear();
 }
@@ -238,7 +237,7 @@ void SaveJsonFile(const std::string& filename, const string &prefix)
             try{
                 const std::string val = VarState::I()[name]->str->Get();
                 vars[name] = val;
-            }catch(BadInputException)
+            }catch(const BadInputException&)
             {
                 // Ignore things we can't serialise
             }

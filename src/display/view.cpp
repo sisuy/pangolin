@@ -191,11 +191,12 @@ void View::ResizeChildren()
         int num_children = 0;
         for(std::vector<View*>::iterator iv = views.begin(); iv != views.end(); ++iv )
         {
+            if (!(*iv)->show) continue;
             num_children++;
-            if(scroll_offset > num_children ) {
-                (*iv)->show = false;
+            if(scroll_offset >= num_children ) {
+                (*iv)->scroll_show = false;
             }else{
-                (*iv)->show = true;
+                (*iv)->scroll_show = true;
                 (*iv)->Resize(space);
                 space.h = (*iv)->v.b - panal_v_margin - space.b;
             }
@@ -290,7 +291,7 @@ void View::ResizeChildren()
 
 void View::Render()
 {
-    if(extern_draw_function && show) {
+    if(extern_draw_function && show && scroll_show) {
         extern_draw_function(*this);
     }
     RenderChildren();
@@ -300,7 +301,7 @@ void View::RenderChildren()
 {
     for(std::vector<View*>::iterator iv = views.begin(); iv != views.end(); ++iv )
     {
-        if((*iv)->show) (*iv)->Render();
+        if((*iv)->show && (*iv)->scroll_show) (*iv)->Render();
     }
 }
 
@@ -389,13 +390,7 @@ void View::GetObjectCoordinates(const OpenGlRenderState& cam_state, double winx,
 
 void View::GetCamCoordinates(const OpenGlRenderState& cam_state, double winx, double winy, double winzdepth, GLdouble& x, GLdouble& y, GLdouble& z) const
 {
-    const GLint viewport[4] = {v.l,v.b,v.w,v.h};
-    const OpenGlMatrix proj = cam_state.GetProjectionMatrix();
-#ifndef HAVE_GLES
-    glUnProject(winx, winy, winzdepth, Identity4d, proj.m, viewport, &x, &y, &z);
-#else
-    glUnProject(winx, winy, winzdepth, Identity4f, proj.m, viewport, &x, &y, &z);
-#endif
+    v.GetCamCoordinates(cam_state, winx, winy, winzdepth, x, y, z);
 }
 
 View& View::SetFocus()
@@ -505,11 +500,15 @@ void View::RecordOnRender(const std::string& record_uri)
     if(!context->recorder.IsOpen()) {
         Viewport area = GetBounds();
         context->record_view = this;
-        context->recorder.Open(record_uri);
-        std::vector<StreamInfo> streams;
-        const PixelFormat fmt = PixelFormatFromString("RGB24");
-        streams.push_back( StreamInfo(fmt, area.w, area.h, area.w * fmt.bpp / 8) );
-        context->recorder.SetStreams(streams);
+        try{
+            context->recorder.Open(record_uri);
+            std::vector<StreamInfo> streams;
+            const PixelFormat fmt = PixelFormatFromString("RGB24");
+            streams.push_back( StreamInfo(fmt, area.w, area.h, area.w * fmt.bpp / 8) );
+            context->recorder.SetStreams(streams);
+        }catch(const std::exception& e) {
+            pango_print_error("Unable to open VideoRecorder:\n\t%s\n", e.what());
+        }
     }else{
         context->recorder.Close();
     }

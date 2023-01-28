@@ -1,7 +1,10 @@
 # https://github.com/stevenlovegrove/Pangolin/tree/master/examples/HelloPangolin
 
+import sys 
+sys.path.append("../../")
+
 import OpenGL.GL as gl
-import pangolin
+import pypangolin as pangolin
 
 import numpy as np
 

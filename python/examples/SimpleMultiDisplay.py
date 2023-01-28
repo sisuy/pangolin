@@ -1,9 +1,12 @@
 # https://github.com/stevenlovegrove/Pangolin/blob/master/examples/SimpleMultiDisplay
 
+import sys 
+sys.path.append("../../")
+
 import numpy as np
 
 import OpenGL.GL as gl
-import pangolin
+import pypangolin as pangolin
 
 
 def random_image(w, h):

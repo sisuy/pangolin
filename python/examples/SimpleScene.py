@@ -1,8 +1,10 @@
 # https://github.com/stevenlovegrove/Pangolin/tree/master/examples/SimpleScene
 
-import OpenGL.GL as gl 
-import pangolin
+import sys 
+sys.path.append("../../")
 
+import OpenGL.GL as gl 
+import pypangolin as pangolin
 
 
 def main():

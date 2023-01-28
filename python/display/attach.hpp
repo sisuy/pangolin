@@ -1,6 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include <pangolin/gl/glinclude.h>
 #include <pangolin/display/attach.h>
 
 

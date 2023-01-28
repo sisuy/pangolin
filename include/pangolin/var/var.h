@@ -27,7 +27,6 @@
 
 #pragma once
 
-#include <memory>
 #include <stdexcept>
 #include <string.h>
 #include <cmath>
@@ -50,7 +49,7 @@ inline void InitialiseNewVarMetaGeneric(
     v.Meta().range[0] = 0.0;
     v.Meta().range[1] = 0.0;
     v.Meta().increment = 0.0;
-    v.Meta().flags = 0;
+    v.Meta().flags = META_FLAG_NONE;
     v.Meta().logscale = false;
     v.Meta().generic = true;
 
@@ -60,7 +59,8 @@ inline void InitialiseNewVarMetaGeneric(
 template<typename T>
 inline void InitialiseNewVarMeta(
     VarValue<T>& v, const std::string& name,
-    double min = 0, double max = 0, int flags = 1, bool logscale = false
+    double min = 0, double max = 0, int flags = META_FLAG_TOGGLE,
+    bool logscale = false
 ) {
     // Initialise meta parameters
     const std::vector<std::string> parts = pangolin::Split(name,'.');
@@ -90,34 +90,45 @@ public:
     ) {
         // Find name in VarStore
         VarValueGeneric*& v = VarState::I()[name];
-        //std::shared_ptr<VarValueGeneric>& v = VarState::I()[name];
         if(v) {
-            throw std::runtime_error("Var with that name already exists.");
+            throw std::runtime_error(std::string("Var with the following name already exists: ") + name);
         }else{
             // new VarRef<T> (owned by VarStore)
             VarValue<T&>* nv = new VarValue<T&>(variable);
             v = nv;
-            InitialiseNewVarMeta<T&>(*nv,name,min,max,1,logscale);
+            if(logscale) {
+                if (min <= 0 || max <= 0) {
+                    throw std::runtime_error("LogScale: range of numbers must be positive!");
+                }
+                InitialiseNewVarMeta<T&>(*nv, name, std::log(min), std::log(max), META_FLAG_TOGGLE, logscale);
+            }else{
+                InitialiseNewVarMeta<T&>(*nv, name, min, max, META_FLAG_TOGGLE, logscale);
+            }
         }
         return variable;
     }
 
     static T& Attach(
-        const std::string& name, T& variable, bool toggle = false
+        const std::string& name, T& variable, int flags = META_FLAG_NONE
         ) {
         // Find name in VarStore
         VarValueGeneric*& v = VarState::I()[name];
-        //std::shared_ptr<VarValueGeneric>& v = VarState::I()[name];
         if (v) {
-            throw std::runtime_error("Var with that name already exists.");
+            throw std::runtime_error(std::string("Var with the following name already exists: ") + name);
         }
         else{
             // new VarRef<T> (owned by VarStore)
             VarValue<T&>* nv = new VarValue<T&>(variable);
             v = nv;
-            InitialiseNewVarMeta<T&>(*nv, name, 0.0, 0.0, toggle);
+            InitialiseNewVarMeta<T&>(*nv, name, 0.0, 0.0, flags);
         }
         return variable;
+    }
+
+    static T& Attach(
+        const std::string& name, T& variable, bool toggle
+        ) {
+        return Attach(name, variable, toggle ? META_FLAG_TOGGLE : META_FLAG_NONE);
     }
 
     ~Var()
@@ -137,7 +148,6 @@ public:
     {
         // Find name in VarStore
         VarValueGeneric*& v = VarState::I()[name];
-        //std::shared_ptr<VarValueGeneric>& v = VarState::I()[name];
         if(v && !v->Meta().generic) {
             InitialiseFromGeneric(v);
         }else{
@@ -156,12 +166,11 @@ public:
         }
     }
 
-    Var( const std::string& name, const T& value, bool toggle = false )
+    Var(const std::string& name, const T& value, int flags = META_FLAG_NONE)
         : ptr(0)
     {
         // Find name in VarStore
         VarValueGeneric*& v = VarState::I()[name];
-        //std::shared_ptr<VarValueGeneric>& v = VarState::I()[name];
         if(v && !v->Meta().generic) {
             InitialiseFromGeneric(v);
         }else{
@@ -176,8 +185,13 @@ public:
             }
             v = nv;
             var = nv;
-            InitialiseNewVarMeta(*nv, name, 0, 1, toggle);
+            InitialiseNewVarMeta(*nv, name, 0, 1, flags);
         }
+    }
+
+    Var(const std::string& name, const T& value, bool toggle)
+        : Var(name, value, toggle ? META_FLAG_TOGGLE : META_FLAG_NONE)
+    {
     }
 
     Var(
@@ -187,7 +201,6 @@ public:
     {
         // Find name in VarStore
         VarValueGeneric*& v = VarState::I()[name];
-        //std::shared_ptr<VarValueGeneric>& v = VarState::I()[name];
         if(v && !v->Meta().generic) {
             InitialiseFromGeneric(v);
         }else{
@@ -206,7 +219,7 @@ public:
                 if (min <= 0 || max <= 0) {
                     throw std::runtime_error("LogScale: range of numbers must be positive!");
                 }
-                InitialiseNewVarMeta(*nv, name, std::log(min), std::log(max), 1, true);
+                InitialiseNewVarMeta(*nv, name, std::log(min), std::log(max), META_FLAG_TOGGLE, true);
             }else{
                 InitialiseNewVarMeta(*nv, name, min, max);
             }
@@ -222,7 +235,7 @@ public:
     {
         try{
             return var->Get();
-        }catch(BadInputException)
+        }catch(const BadInputException&)
         {
             const_cast<Var<T> *>(this)->Reset();
             return var->Get();
@@ -238,7 +251,7 @@ public:
     {
         try{
             return &(var->Get());
-        }catch(BadInputException)
+        }catch(const BadInputException&)
         {
             Reset();
             return &(var->Get());
@@ -277,7 +290,6 @@ public:
 protected:
     // Initialise from existing variable, obtain data / accessor
     void InitialiseFromGeneric(VarValueGeneric* v)
-    //void InitialiseFromGeneric(std::shared_ptr<VarValueGeneric> v)
     {
         if( !strcmp(v->TypeId(), typeid(T).name()) ) {
             // Same type
